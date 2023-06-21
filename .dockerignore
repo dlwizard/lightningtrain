@@ -1,0 +1,8 @@
+.devcontainer/*
+.docker/*
+.vscode/*
+
+src/data/*
+src/logs/*
+src/outputs/*
+src/lightning-train/data/*

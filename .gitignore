@@ -1,8 +1,15 @@
+.vscode/*
+
+data/*
+!data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*/__pycache__/*
 *.py[cod]
 *$py.class
-
+.pypirc
 # C extensions
 *.so
 

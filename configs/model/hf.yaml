@@ -1,0 +1,20 @@
+_target_: lightningtrain.models.hf_module.HFLitModule
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 0.001
+  weight_decay: 0.0
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  mode: min
+  factor: 0.1
+  patience: 10
+
+net:
+  _target_: transformers.AutoModelForImageClassification.from_pretrained
+  num_labels: 10
+  ignore_mismatched_sizes: True
+  pretrained_model_name_or_path: "microsoft/resnet-18"

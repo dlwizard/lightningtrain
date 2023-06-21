@@ -1,0 +1,24 @@
+# @package _global_
+
+# specify here default configuration
+# order of defaults determines the order in which configs override each other
+defaults:
+  - _self_
+  - data: cifar10.yaml
+  - model: cifar10.yaml
+  - paths: default.yaml
+  - trainer: default.yaml
+
+# task name, determines output directory path
+task_name: "evaluate"
+
+test: True
+
+# compile model for faster training with pytorch 2.0
+compile: False
+
+# simply provide checkpoint path to resume training
+ckpt_path: null
+
+# seed for random number generators in pytorch, numpy and python.random
+seed: null
