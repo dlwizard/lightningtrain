@@ -12,7 +12,10 @@ from lightningtrain import utils
 
 log = utils.get_pylogger(__name__)
 
-def get_last_training_checkpoint_dir(path: str):
+def get_last_training_checkpoint_dir(path: str) -> str:
+    '''Returns the path of the last training checkpoint directory. 
+    If no checkpoint is found checks for the last training directory.'''
+
     # get all the paths wrt to date and choose latest date path
     path = os.path.join(path, max(os.listdir(path)))
 
@@ -27,6 +30,8 @@ def get_last_training_checkpoint_dir(path: str):
     while len(paths)>0:
         p = os.path.join(path, max(paths))
         checkpoint_path = os.path.join(p, "lightning_logs", "version_0", "checkpoints")
+
+        # checks if path exists
         if os.path.exists(checkpoint_path):
             latest_checkpoint_path = checkpoint_path
             break
@@ -34,7 +39,6 @@ def get_last_training_checkpoint_dir(path: str):
             paths.pop(paths.index(max(paths)))
     
     return latest_checkpoint_path
-
 
 @utils.task_wrapper
 def eval(cfg: DictConfig) -> Tuple[dict, dict]:

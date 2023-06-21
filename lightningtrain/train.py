@@ -12,7 +12,10 @@ from lightningtrain import utils
 
 log = utils.get_pylogger(__name__)
 
-def get_last_training_checkpoint_dir(path: str):
+def get_last_training_checkpoint_dir(path: str) -> str:
+    '''Returns the path of the last training checkpoint directory. 
+    If no checkpoint is found checks for the last training directory.'''
+
     # get all the paths wrt to date and choose latest date path
     path = os.path.join(path, max(os.listdir(path)))
 
@@ -27,6 +30,8 @@ def get_last_training_checkpoint_dir(path: str):
     while len(paths)>0:
         p = os.path.join(path, max(paths))
         checkpoint_path = os.path.join(p, "lightning_logs", "version_0", "checkpoints")
+
+        # checks if path exists
         if os.path.exists(checkpoint_path):
             latest_checkpoint_path = checkpoint_path
             break
@@ -41,10 +46,12 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     # set seed for random number generators in pytorch, numpy and python.random
     path = Path(cfg.paths.output_dir)
 
+    # get the latest checkpoint path
     latest_path = get_last_training_checkpoint_dir(path.parent.parent.absolute()) if len(os.listdir(path.parent.parent.absolute())) > 0 else None
 
     checkpoint_file_path = None
     if latest_path is not None:
+        #  get the latest checkpoint file path
         checkpoint_file_path = os.path.join(latest_path, os.listdir(latest_path)[0])
 
     if cfg.get("seed"):
