@@ -1,0 +1,7 @@
+[core]
+    autostage = true
+    remote = local
+['remote "gdrive"']
+    url = gdrive://1IhzSygt6m2Q9jmt17BUZCFSyGZh4eftf
+['remote "local"']
+    url = /workspace/dvc-data
