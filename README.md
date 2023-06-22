@@ -34,11 +34,13 @@ configs
 │   ├── data                     <- Data configs
 configs
 │   ├── hydra                    <- Hydra configs
+│   ├── experiments              <- Experiments configs
 │   ├── local                    <- Local configs
 │   ├── model                    <- Model configs
 │   ├── paths                    <- Project paths configs
 │   ├── trainer                  <- Trainer configs
 │   ├── eval.yaml             <- Main config for evaluation
+│   ├── infer.yaml            <- Main config for inference
 │   └── train.yaml            <- Main config for training
 │
 ├── data                   <- Project data
@@ -54,6 +56,7 @@ configs
 │   ├── utils                    <- Utility scripts
 │   │
 │   ├── eval.py                  <- Run evaluation
+│   ├── infer.py                 <- Run inference
 │   └── train.py                 <- Run training
 │
 ├── tests                  <- Tests of any kind
@@ -89,7 +92,7 @@ lightningtrain_eval data.num_workers=16
 
 ```
 
-## 📝  Docker container usage instructions
+## 🗡  Docker container usage instructions
 **Prerequisites:**
 - [Docker](https://docs.docker.com/get-docker/)
 - [Visual Studio Code](https://code.visualstudio.com/)
@@ -101,7 +104,8 @@ lightningtrain_eval data.num_workers=16
 3. press crtl+shift+p and select "Remote-Containers: Reopen in Container"
 4. Wait for the container to build
 5. Open a terminal in Visual Studio Code and run the following commands:
-```
+
+```bash
 # install project as a package
 pip install -e .
 
@@ -115,7 +119,47 @@ lightningtrain_eval data.num_workers=16
 
 <br>
 
-## 📝 Instructions for PyPi package usage
+## 🗡  DVC usage instructions
+**Prerequisites:**
+- [DVC](https://dvc.org/doc/install)
+
+**Steps:**
+
+```bash
+# clone project
+git clone <url> -b dvc
+
+# install project as a package
+pip install -e .
+
+# add data to dvc
+dvc add data
+
+# add remote for dvc
+dvc remote add -d local /workspace/dvc-data
+
+# push data to dvc remote
+dvc push -r local
+
+# pull data from dvc remote
+dvc pull -r local
+
+```
+<br>
+
+## 🗡  Inferece usage instructions
+```bash
+# run inference
+lightningtrain_infer iamge_path=<path_to_image>
+
+```
+**Example output:**
+
+[![inference output](images/output2.png)](images/inference_output.png)
+
+<br>
+
+## 🔧  Instructions for PyPi package
 **Prerequisites:**
 - [Python 3.10](https://www.python.org/downloads/release/python-3100/)
 - [pip](https://pip.pypa.io/en/stable/installation/)
@@ -131,7 +175,7 @@ lightningtrain_eval data.num_workers=16
 <br>
 
 
-## References
+## 🧰 References
 - [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)
 - [Hydra](https://hydra.cc/docs/intro/)
 - [Lightning-Hydra-Template](https://github.com/ashleve/lightning-hydra-template.git)
