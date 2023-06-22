@@ -21,7 +21,8 @@ setup(
     entry_points={
         "console_scripts": [
             "lightningtrain_train = lightningtrain.train:main",
-            "lightningtrain_eval = lightningtrain.eval:main"
+            "lightningtrain_eval = lightningtrain.eval:main",
+            "lightningtrain_infer = lightningtrain.infer:main"
         ]
     },
 )
