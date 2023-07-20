@@ -1,0 +1,28 @@
+{
+    "dockerFile": "../docker/Dockerfile.dev",
+    "context": "..",
+    "runArgs": [
+      "--gpus=all",
+      "--net=host",
+      "--privileged",
+      "-e=DISPLAY=${env:DISPLAY}",
+      "-v=/tmp/.X11-unix:/tmp/.X11-unix"
+    ],
+    "customizations": {
+      "vscode": {
+        "extensions": [
+            "ms-python.python",
+            "ms-python.isort",
+            "ms-toolsai.jupyter",
+            "ms-toolsai.jupyter-keymap",
+            "ms-toolsai.jupyter-renderers",
+            "vscode-icons-team.vscode-icons",
+            "ms-python.vscode-pylance",
+            "github.copilot",
+            "iterative.dvc",
+            "cschlosser.doxdocgen",
+            "ms-vscode.makefile-tools"
+          ]
+      }
+	  }
+  }

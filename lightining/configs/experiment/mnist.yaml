@@ -1,0 +1,35 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=cat_dog
+
+defaults:
+  - override /data: mnist.yaml
+  - override /model: mnist.yaml
+  - override /trainer: default.yaml
+  - override /logger: many_loggers.yaml
+  - override /callbacks: default.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+experiment_name: "mnist-batch-size-check"
+
+tags:
+  mnist: "batch_size_exp"
+
+seed: 12345
+
+trainer:
+  min_epochs: 0
+  max_epochs: 5
+
+data:
+  num_workers: 16
+
+compile: False
+
+logger:
+  mlflow:
+    tags: ${tags}
+    experiment_name: ${experiment_name}

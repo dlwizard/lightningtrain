@@ -1,0 +1,27 @@
+# @package _global_
+
+# specify here default configuration
+# order of defaults determines the order in which configs override each other
+defaults:
+  - model: vit.yaml
+  - paths: default.yaml
+  - _self_
+
+# task name, determines output directory path
+task_name: "PyTorch Lightning Inference"
+
+image_path: "https://t3.ftcdn.net/jpg/00/01/47/28/360_F_1472821_kMjcU0El8NkcU0k7zNtlVTU0Fl8W2l.jpg"
+# image_path: "https://upload.wikimedia.org/wikipedia/commons/0/08/Chital_Deer_%28Bandhavgarh%29.jpg"
+
+model:
+  num_classes: 2
+  img_size: 32
+
+# classes: ['cat', 'dog']
+classes: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+# simply provide checkpoint path to resume training
+ckpt_path: null
+
+# seed for random number generators in pytorch, numpy and python.random
+seed: null

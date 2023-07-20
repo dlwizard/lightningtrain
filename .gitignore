@@ -4,6 +4,8 @@ data/*
 !data/.gitkeep
 outputs/*
 !outputs/.gitkeep
+logs/*
+!logs/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 */__pycache__/*

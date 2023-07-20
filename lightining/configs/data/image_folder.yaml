@@ -1,0 +1,10 @@
+_target_: lightningtrain.data.image_folder_datamodule.ImageFolderDataModule
+train_dataset:
+  _target_: torchvision.datasets.ImageFolder
+  root: ${paths.data_dir}/PetImages_split/train
+test_dataset:
+  _target_: torchvision.datasets.ImageFolder
+  root: ${paths.data_dir}/PetImages_split/test
+batch_size: 64
+num_workers: 0
+pin_memory: False

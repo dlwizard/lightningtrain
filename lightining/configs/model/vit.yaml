@@ -1,0 +1,21 @@
+_target_: lightningtrain.models.vit_module.VitLitModule
+
+in_channels: 3
+patch_size: 4
+depth: 6
+emb_size: 64
+img_size: 32
+num_classes: 1000
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 0.001
+  weight_decay: 0.0
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  mode: min
+  factor: 0.1
+  patience: 10
