@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  lightining:
+    build:
+      context: lightining
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./data:/workspace/data
+      - ./logs:/workspace/logs 
+      - ./outputs:/workspace/outputs
+    restart: on-failure
+
+  logger:
+    build:
+      context: logger
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./data:/workspace/data
+      - ./logs:/workspace/logs 
+      - ./outputs:/workspace/outputs
+    network_mode: 'host'
+    restart: on-failure
+    depends_on:
+      - lightining

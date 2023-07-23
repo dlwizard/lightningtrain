@@ -6,3 +6,5 @@ src/data/*
 src/logs/*
 src/outputs/*
 src/lightning-train/data/*
+*egg-info/*
+.env

@@ -1,5 +1,5 @@
 # using cuda 11.3.0 and cudnn 8 docker image as base image for development environment
-FROM nvidia/cuda:11.7.0-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
 
 # setting non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -40,10 +40,6 @@ RUN python3.10 -m pip install -r requirements.txt --ignore-installed && rm -rf /
 # copying all files from parent directory
 COPY . .
 
-# adding dev user
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -G audio,users -ms /bin/bash $USERNAME \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+WORKDIR /workspace/logs
 
-USER $USERNAME
+CMD aim up & mlflow ui --backend-store-uri file:///workspace/logs/mlflow/mlruns

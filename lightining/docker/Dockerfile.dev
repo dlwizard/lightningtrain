@@ -1,5 +1,5 @@
 # using cuda 11.3.0 and cudnn 8 docker image as base image for development environment
-FROM nvidia/cuda:11.7.0-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
 
 # setting non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -38,5 +38,9 @@ RUN python3.10 -m pip install --upgrade pip && python3.10 -m pip install setupto
 RUN python3.10 -m pip install -r requirements.txt --ignore-installed && rm -rf /root/.cache/pip
 
 # copying all files from parent directory
-# COPY lightining/ .
+COPY . .
 
+RUN python3.10 -m pip install -e .
+
+# CMD ["lightningtrain_train", "experiment=cifar10", "data.num_workers=8"]
+CMD ["lightningtrain_train", "-m", "hydra/launcher=joblib", "hydra.launcher.n_jobs=1", "experiment=cifar10", "model.patch_size=2,4,8,16", "data.num_workers=8"]
