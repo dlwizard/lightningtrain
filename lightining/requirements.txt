@@ -34,4 +34,4 @@ sh==2.0.4               # for running bash commands in some tests (linux/macos o
 
 # # --------- data version control --------- #
 dvc==3.0.0              # data version control
-pydrive2==1.16          # google drive remote for dvc
+dvc-gdrive==2.20.0      # google drive integration
