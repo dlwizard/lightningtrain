@@ -72,8 +72,8 @@ configs
 ## 🚀  Quickstart
 ```bash
 # clone project
-git clone https://github.com/dlwizard/lightningflow.git
-cd lightningflow
+git clone https://github.com/dlwizard/lightningtrain.git
+cd lightningtrain
 
 # create docker container with .devcontainer.json
 # or install dependencies locally
