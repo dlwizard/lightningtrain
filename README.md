@@ -198,7 +198,6 @@ $ dvc push -r gdrive
 **AIM Logger:**
 1. Open AIM UI in browser at http://localhost:43800
 2. Click on runs tab to see all runs:
-<br>
 ![AIM UI start](images/logs/aim_2.png)
 3. Select latest runs and click on compare to see all runs plots:
 ![AIM UI compare](images/logs/aim_3.png)
