@@ -1,11 +1,6 @@
 _target_: lightningtrain.models.vit_module.VitLitModule
 
-in_channels: 3
-patch_size: 4
-depth: 6
-emb_size: 64
-img_size: 32
-num_classes: 1000
+num_classes: 10
 
 optimizer:
   _target_: torch.optim.Adam
@@ -19,3 +14,12 @@ scheduler:
   mode: min
   factor: 0.1
   patience: 10
+
+model:
+  _target_: lightningtrain.models.components.vit.ViT
+  in_channels: 3
+  patch_size: 4
+  depth: 6
+  emb_size: 64
+  img_size: 32
+  num_classes: ${model.num_classes}
