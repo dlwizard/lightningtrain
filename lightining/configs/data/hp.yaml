@@ -1,0 +1,7 @@
+_target_: lightningtrain.data.hp_datamodule.HarryPotterDataModule
+data_dir: ${paths.data_dir}/harry_potter
+batch_size: 128
+train_ratio: 0.7
+block_size: 8
+num_workers: 0
+pin_memory: False

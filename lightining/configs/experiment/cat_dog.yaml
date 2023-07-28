@@ -13,6 +13,10 @@ defaults:
 
 seed: 12345
 
+callbacks:
+  model_checkpoint:
+    filename: "cat_dog_{epoch:03d}"
+
 trainer:
   min_epochs: 0
   max_epochs: 5

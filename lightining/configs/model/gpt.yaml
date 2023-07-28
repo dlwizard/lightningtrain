@@ -1,0 +1,11 @@
+_target_: lightningtrain.models.gpt_module.GPTLitModule
+learning_rate: 0.001
+block_size: 8
+
+model:
+  _target_: lightningtrain.models.components.gpt.GPT
+  block_size: 8
+  n_embed: 128
+  n_decoder_blocks: 4
+  drop_p: 0.
+  n_heads: 4

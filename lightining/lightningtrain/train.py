@@ -1,5 +1,5 @@
 from typing import Tuple, Dict, List
-
+import optuna
 import torch
 import lightning as L
 from lightning.pytorch.loggers import Logger
@@ -12,6 +12,10 @@ from pathlib import Path
 import mlflow
 
 from lightningtrain import utils
+from lightningtrain.models.gpt_module import GPTLitModule
+from lightningtrain.models.components.gpt import GPT
+from lightningtrain.hparam.hparam_search import PyTorchLightningPruningCallback, set_best_trial
+from lightningtrain.data.hp_datamodule import HarryPotterDataModule
 
 log = utils.get_pylogger(__name__)
 
@@ -34,7 +38,92 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     callbacks: List[L.Callback] = utils.instantiate_callbacks(cfg.get("callbacks"))
     
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger)
+    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger, limit_train_batches=cfg.get("limit_train_batches"), limit_val_batches=cfg.get("limit_val_batches"), limit_test_batches=cfg.get("limit_test_batches"))
+
+    log.info(f"Batch size: {datamodule.hparams.batch_size}")
+    log.info(f"Block size: {datamodule.hparams.block_size}")
+    log.info(f"Learning rate: {model.hparams.learning_rate}")
+    log.info(f"Embed Size: {model.model.n_embed}")
+    log.info(f"Block size: {model.hparams.block_size}")
+    log.info(f"Block size: {model.model.block_size}")
+    log.info(f"Dropout: {model.model.drop_p}")
+    log.info(f"Number of Heads: {model.model.n_heads}")
+    log.info(f"Number of decoder blocks: {model.model.n_decoder_blocks}")
+
+    if cfg.get("tune_hparam"):
+        log.info(f"Instantiating hyperparameter optimizer <{cfg.hparam.lr_batch_finder._target_}>")
+        tuner = hydra.utils.instantiate(cfg.hparam.lr_batch_finder, trainer)
+
+        log.info("Starting hyperparameter optimization for learning rate...")
+        tuner.lr_find(model, datamodule)
+
+        log.info("Starting hyperparameter optimization for batch size...")
+        tuner.scale_batch_size(model, datamodule, mode="power")
+
+        def objective(trial: optuna.trial.Trial) -> float:
+            n_embed = trial.suggest_int("n_embed", 32, 128, 32)
+            block_power = trial.suggest_int("block_power", 3, 6, 1)
+            block_size = 2 ** block_power
+            n_heads_power = trial.suggest_int("n_heads_power", 1, 5, 1)
+            n_heads = 2 ** n_heads_power
+            drop_p = trial.suggest_float("drop_p", 0.0, 0.5)
+            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 1, 5, 1)
+
+            model_optuna = GPTLitModule(
+                block_size=block_size,
+                learning_rate = model.hparams.learning_rate,
+                model = GPT(
+                    n_embed=n_embed,
+                    block_size=block_size,
+                    n_heads=n_heads,
+                    drop_p=drop_p,
+                    n_decoder_blocks=n_decoder_blocks,
+                )
+            )
+            datamodule_optuna = HarryPotterDataModule(
+                data_dir = cfg.data.data_dir,
+                block_size = block_size,
+                batch_size=datamodule.hparams.batch_size,
+                num_workers=datamodule.hparams.num_workers,
+                pin_memory=datamodule.hparams.pin_memory
+            )
+            callbacks.append(PyTorchLightningPruningCallback(trial, monitor="val/loss"))
+            trainer_optuna = L.Trainer(
+                logger=logger,
+                limit_train_batches=cfg.get("limit_train_batches"),
+                limit_val_batches=cfg.get("limit_val_batches"),
+                limit_test_batches=cfg.get("limit_test_batches"),
+                max_epochs=1,
+                accelerator="cpu",
+                devices=1,
+                callbacks=callbacks,
+
+            )
+
+            hyperparameters = dict(n_layers=n_embed, block_size=block_size, n_heads=n_heads, drop_p=drop_p, n_decoder_blocks=n_decoder_blocks)
+            trainer.logger.log_hyperparams(hyperparameters)
+            trainer_optuna.fit(model_optuna, datamodule=datamodule_optuna)
+
+            return trainer_optuna.callback_metrics["val/loss"].item()
+
+        pruner = optuna.pruners.MedianPruner()
+
+        study = optuna.create_study(direction="minimize", pruner=pruner)
+        study.optimize(objective, n_trials=1, timeout=600)
+
+        log.info(f"Best Trial: {study.best_trial.params}")
+
+        datamodule, model = set_best_trial(datamodule, model, study.best_trial.params)
+
+        log.info(f"Batch size after optimization: {datamodule.hparams.batch_size}")
+        log.info(f"Block size after optimization: {datamodule.hparams.block_size}")
+        log.info(f"Learning rate after optimization: {model.hparams.learning_rate}")
+        log.info(f"Embed Size after optimization: {model.model.n_embed}")
+        log.info(f"Block size after optimization: {model.hparams.block_size}")
+        log.info(f"Block size after optimization: {model.model.block_size}")
+        log.info(f"Dropout after optimization: {model.model.drop_p}")
+        log.info(f"Number of Heads after optimization: {model.model.n_heads}")
+        log.info(f"Number of decoder blocks after optimization: {model.model.n_decoder_blocks}")
 
     object_dict = {
         "cfg": cfg,
@@ -49,8 +138,8 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         log.info("Logging hyperparameters!")
         utils.log_hyperparameters(object_dict)
 
-    # if cfg.get("compile"):
-    #     model = torch.compile(model)
+    if cfg.get("compile"):
+        model = torch.compile(model)
 
     if cfg.get("train"):
         log.info("Starting training!")
@@ -66,16 +155,16 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             ckpt_path = None
         trainer.test(model=model, datamodule=datamodule, ckpt_path=ckpt_path)
         log.info(f"Best ckpt path: {ckpt_path}")
-        for logger_ in logger:
-            if isinstance(logger_, L.pytorch.loggers.mlflow.MLFlowLogger):
-                ckpt = torch.load(ckpt_path)
-                model.load_state_dict(ckpt["state_dict"])
-                os.environ['MLFLOW_RUN_ID'] = logger_.run_id
-                os.environ['MLFLOW_EXPERIMENT_ID'] = logger_.experiment_id
-                os.environ['MLFLOW_EXPERIMENT_NAME'] = logger_._experiment_name
-                os.environ['MLFLOW_TRACKING_URI'] = logger_._tracking_uri
-                mlflow.pytorch.log_model(model, "model")
-                break
+        # for logger_ in logger:
+        #     if isinstance(logger_, L.pytorch.loggers.mlflow.MLFlowLogger):
+        #         ckpt = torch.load(ckpt_path)
+        #         model.load_state_dict(ckpt["state_dict"])
+        #         os.environ['MLFLOW_RUN_ID'] = logger_.run_id
+        #         os.environ['MLFLOW_EXPERIMENT_ID'] = logger_.experiment_id
+        #         os.environ['MLFLOW_EXPERIMENT_NAME'] = logger_._experiment_name
+        #         os.environ['MLFLOW_TRACKING_URI'] = logger_._tracking_uri
+        #         mlflow.pyfunc.log_model(model, "model")
+        #         break
 
     test_metrics = trainer.callback_metrics
 

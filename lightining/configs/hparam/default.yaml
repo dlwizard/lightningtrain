@@ -1,0 +1,5 @@
+lr_batch_finder:
+  _target_: lightning.pytorch.tuner.Tuner
+
+optuna_callback:
+  __target__: lightningtrain.hparam.hparam_search.PyTorchLightningPruningCallback

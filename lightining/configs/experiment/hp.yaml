@@ -1,11 +1,11 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=mnist
+# python train.py experiment=cifar10
 
 defaults:
-  - override /data: mnist.yaml
-  - override /model: mnist.yaml
+  - override /data: hp.yaml
+  - override /model: gpt.yaml
   - override /trainer: default.yaml
   - override /logger: many_loggers.yaml
   - override /callbacks: default.yaml
@@ -13,23 +13,29 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-experiment_name: "mnist-batch-size-check"
+experiment_name: "harry-potter-hparam-search-check"
 
 callbacks:
   model_checkpoint:
-    filename: "mnist_{epoch:03d}"
+    filename: "hp_{epoch:03d}"
+    monitor: "val/loss"
+    mode: "min"
+
+  early_stopping:
+    monitor: "val/loss"
+    mode: "min"
 
 tags:
-  mnist: "batch_size_exp"
+  cifar10: "hparam_search_exp"
 
 seed: 12345
 
 trainer:
   min_epochs: 0
-  max_epochs: 5
+  max_epochs: 2
 
 data:
-  num_workers: 16
+  num_workers: 8
 
 compile: False
 

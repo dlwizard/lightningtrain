@@ -15,6 +15,10 @@ defaults:
 
 experiment_name: "cifar10-patch-size-check"
 
+callbacks:
+  model_checkpoint:
+    filename: "cifar10_{epoch:03d}"
+
 tags:
   cifar10: "patch_size_exp"
 

@@ -14,6 +14,7 @@ defaults:
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
   - experiment: null
+  - hparam: default.yaml
   
 # task name, determines output directory path
 task_name: "train"
@@ -28,8 +29,20 @@ test: True
 # compile model for faster training with pytorch 2.0
 compile: True
 
+# hyperparameter search flag
+tune_hparam: True
+
 # simply provide checkpoint path to resume training
 ckpt_path: null
 
 # seed for random number generators in pytorch, numpy and python.random
 seed: null
+
+# limit train batches for debugging purposes
+limit_train_batches: 0.01
+
+# limit val batches for debugging purposes
+limit_val_batches: 0.01
+
+# limit test batches for debugging purposes
+limit_test_batches: 0.01
