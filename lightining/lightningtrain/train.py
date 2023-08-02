@@ -51,27 +51,18 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     log.info(f"Number of decoder blocks: {model.model.n_decoder_blocks}")
 
     if cfg.get("tune_hparam"):
-        log.info(f"Instantiating hyperparameter optimizer <{cfg.hparam.lr_batch_finder._target_}>")
-        tuner = hydra.utils.instantiate(cfg.hparam.lr_batch_finder, trainer)
-
-        log.info("Starting hyperparameter optimization for learning rate...")
-        tuner.lr_find(model, datamodule)
-
-        log.info("Starting hyperparameter optimization for batch size...")
-        tuner.scale_batch_size(model, datamodule, mode="power")
-
         def objective(trial: optuna.trial.Trial) -> float:
-            n_embed = trial.suggest_int("n_embed", 64, 128, 32)
-            block_power = trial.suggest_int("block_power", 5, 6, 1)
+            n_embed = trial.suggest_int("n_embed", 32, 128, 32)
+            block_power = trial.suggest_int("block_power", 2, 6, 1)
             block_size = 2 ** block_power
-            n_heads_power = trial.suggest_int("n_heads_power", 4, 5, 1)
+            n_heads_power = trial.suggest_int("n_heads_power", 2, 5, 1)
             n_heads = 2 ** n_heads_power
             drop_p = trial.suggest_float("drop_p", 0.0, 0.5)
-            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 4, 5, 1)
+            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 1, 5, 1)
 
             model_optuna = GPTLitModule(
                 block_size=block_size,
-                learning_rate = model.hparams.learning_rate,
+                learning_rate = 0.001,
                 model = GPT(
                     n_embed=n_embed,
                     block_size=block_size,
@@ -83,7 +74,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             datamodule_optuna = HarryPotterDataModule(
                 data_dir = cfg.data.data_dir,
                 block_size = block_size,
-                batch_size=256,
+                batch_size=128,
                 num_workers=datamodule.hparams.num_workers,
                 pin_memory=datamodule.hparams.pin_memory
             )
@@ -109,11 +100,11 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         pruner = optuna.pruners.MedianPruner()
 
         study = optuna.create_study(direction="minimize", pruner=pruner)
-        study.optimize(objective, n_trials=4, timeout=600)
+        study.optimize(objective, n_trials=10, timeout=600)
 
         log.info(f"Best Trial: {study.best_trial.params}")
 
-        cfg = set_best_trial(cfg, int(datamodule.hparams.batch_size/2), model.hparams.learning_rate, study.best_trial.params)
+        cfg = set_best_trial(cfg, study.best_trial.params)
 
         log.info(f"Config Data: {cfg.data}")
 
@@ -124,6 +115,15 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
 
         log.info(f"Instantiating model after optimization <{cfg.model._target_}>")
         model: LightningModule = hydra.utils.instantiate(cfg.model)
+
+        log.info(f"Instantiating hyperparameter optimizer <{cfg.hparam.lr_batch_finder._target_}>")
+        tuner = hydra.utils.instantiate(cfg.hparam.lr_batch_finder, trainer)
+
+        log.info("Starting hyperparameter optimization for learning rate...")
+        tuner.lr_find(model, datamodule)
+
+        log.info("Starting hyperparameter optimization for batch size...")
+        tuner.scale_batch_size(model, datamodule, mode="power")
 
         log.info(f"Batch size after optimization: {datamodule.hparams.batch_size}")
         log.info(f"Block size after optimization: {datamodule.hparams.block_size}")

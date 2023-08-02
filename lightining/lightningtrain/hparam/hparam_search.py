@@ -200,15 +200,13 @@ class PyTorchLightningPruningCallback(L.Callback):
             raise optuna.TrialPruned(f"Trial was pruned at epoch {epoch}.")
 
 
-def set_best_trial(cfg, batch_size, learning_rate, best_trial):
+def set_best_trial(cfg, best_trial):
     """Set the best trial's parameters to the model."""
     if best_trial is not None:
         block_size = 2 ** best_trial["block_power"]
         n_heads = 2 ** best_trial["n_heads_power"]
         cfg.data.block_size = block_size
-        cfg.data.batch_size = batch_size
         cfg.model.block_size = block_size
-        cfg.model.learning_rate = learning_rate
         cfg.model.model.block_size = block_size
         cfg.model.model.n_embed = best_trial["n_embed"]
         cfg.model.model.n_decoder_blocks = best_trial["n_decoder_blocks"]
