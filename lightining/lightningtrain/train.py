@@ -83,7 +83,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             datamodule_optuna = HarryPotterDataModule(
                 data_dir = cfg.data.data_dir,
                 block_size = block_size,
-                batch_size=512,
+                batch_size=256,
                 num_workers=datamodule.hparams.num_workers,
                 pin_memory=datamodule.hparams.pin_memory
             )
