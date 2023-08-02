@@ -61,13 +61,13 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         tuner.scale_batch_size(model, datamodule, mode="power")
 
         def objective(trial: optuna.trial.Trial) -> float:
-            n_embed = trial.suggest_int("n_embed", 32, 128, 32)
-            block_power = trial.suggest_int("block_power", 3, 6, 1)
+            n_embed = trial.suggest_int("n_embed", 64, 128, 32)
+            block_power = trial.suggest_int("block_power", 5, 6, 1)
             block_size = 2 ** block_power
-            n_heads_power = trial.suggest_int("n_heads_power", 1, 5, 1)
+            n_heads_power = trial.suggest_int("n_heads_power", 4, 5, 1)
             n_heads = 2 ** n_heads_power
             drop_p = trial.suggest_float("drop_p", 0.0, 0.5)
-            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 1, 5, 1)
+            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 4, 5, 1)
 
             model_optuna = GPTLitModule(
                 block_size=block_size,
@@ -109,7 +109,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         pruner = optuna.pruners.MedianPruner()
 
         study = optuna.create_study(direction="minimize", pruner=pruner)
-        study.optimize(objective, n_trials=50, timeout=600)
+        study.optimize(objective, n_trials=4, timeout=600)
 
         log.info(f"Best Trial: {study.best_trial.params}")
 
