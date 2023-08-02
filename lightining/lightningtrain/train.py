@@ -94,7 +94,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
                 limit_val_batches=cfg.get("limit_val_batches"),
                 limit_test_batches=cfg.get("limit_test_batches"),
                 max_epochs=1,
-                accelerator="cpu",
+                accelerator="gpu",
                 devices=1,
                 callbacks=callbacks,
 
@@ -109,11 +109,21 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         pruner = optuna.pruners.MedianPruner()
 
         study = optuna.create_study(direction="minimize", pruner=pruner)
-        study.optimize(objective, n_trials=1, timeout=600)
+        study.optimize(objective, n_trials=50, timeout=600)
 
         log.info(f"Best Trial: {study.best_trial.params}")
 
-        datamodule, model = set_best_trial(datamodule, model, study.best_trial.params)
+        cfg = set_best_trial(cfg, datamodule.hparams.batch_size, model.hparams.learning_rate, study.best_trial.params)
+
+        log.info(f"Config Data: {cfg.data}")
+
+        log.info(f"Config Model: {cfg.model}")
+
+        log.info(f"Instantiating datamodule after optimization <{cfg.data._target_}>")
+        datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
+
+        log.info(f"Instantiating model after optimization <{cfg.model._target_}>")
+        model: LightningModule = hydra.utils.instantiate(cfg.model)
 
         log.info(f"Batch size after optimization: {datamodule.hparams.batch_size}")
         log.info(f"Block size after optimization: {datamodule.hparams.block_size}")
@@ -172,6 +182,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     metric_dict = {**train_metrics, **test_metrics}
 
     return metric_dict, object_dict
+    # return None, None
 
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="train.yaml")

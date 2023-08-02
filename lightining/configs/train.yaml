@@ -39,10 +39,10 @@ ckpt_path: null
 seed: null
 
 # limit train batches for debugging purposes
-limit_train_batches: 0.01
+limit_train_batches: 0.25
 
 # limit val batches for debugging purposes
-limit_val_batches: 0.01
+limit_val_batches: 0.25
 
 # limit test batches for debugging purposes
-limit_test_batches: 0.01
+limit_test_batches: 0.25

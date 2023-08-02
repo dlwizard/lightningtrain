@@ -32,7 +32,7 @@ seed: 12345
 
 trainer:
   min_epochs: 0
-  max_epochs: 2
+  max_epochs: 10
 
 data:
   num_workers: 8
