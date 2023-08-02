@@ -83,7 +83,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             datamodule_optuna = HarryPotterDataModule(
                 data_dir = cfg.data.data_dir,
                 block_size = block_size,
-                batch_size=datamodule.hparams.batch_size,
+                batch_size=128,
                 num_workers=datamodule.hparams.num_workers,
                 pin_memory=datamodule.hparams.pin_memory
             )
@@ -113,7 +113,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
 
         log.info(f"Best Trial: {study.best_trial.params}")
 
-        cfg = set_best_trial(cfg, int(datamodule.hparams.batch_size/4), model.hparams.learning_rate, study.best_trial.params)
+        cfg = set_best_trial(cfg, int(datamodule.hparams.batch_size/2), model.hparams.learning_rate, study.best_trial.params)
 
         log.info(f"Config Data: {cfg.data}")
 
