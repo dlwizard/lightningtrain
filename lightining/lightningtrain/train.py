@@ -53,12 +53,12 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     if cfg.get("tune_hparam"):
         def objective(trial: optuna.trial.Trial) -> float:
             n_embed = trial.suggest_int("n_embed", 32, 128, 32)
-            block_power = trial.suggest_int("block_power", 5, 6, 1)
+            block_power = trial.suggest_int("block_power", 2, 6, 1)
             block_size = 2 ** block_power
-            n_heads_power = trial.suggest_int("n_heads_power", 4, 5, 1)
+            n_heads_power = trial.suggest_int("n_heads_power", 2, 5, 1)
             n_heads = 2 ** n_heads_power
             drop_p = trial.suggest_float("drop_p", 0.0, 0.5)
-            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 4, 5, 1)
+            n_decoder_blocks = trial.suggest_int("n_decoder_blocks", 1, 5, 1)
 
             model_optuna = GPTLitModule(
                 block_size=block_size,
@@ -92,7 +92,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             )
 
             hyperparameters = dict(n_layers=n_embed, block_size=block_size, n_heads=n_heads, drop_p=drop_p, n_decoder_blocks=n_decoder_blocks)
-            trainer.logger.log_hyperparams(hyperparameters)
+            trainer_optuna.logger.log_hyperparams(hyperparameters)
             trainer_optuna.fit(model_optuna, datamodule=datamodule_optuna)
 
             return trainer_optuna.callback_metrics["val/loss"].item()
@@ -100,7 +100,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         pruner = optuna.pruners.MedianPruner()
 
         study = optuna.create_study(direction="minimize", pruner=pruner)
-        study.optimize(objective, n_trials=2, timeout=600)
+        study.optimize(objective, n_trials=50, timeout=600)
 
         log.info(f"Best Trial: {study.best_trial.params}")
 
