@@ -113,7 +113,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
 
         log.info(f"Best Trial: {study.best_trial.params}")
 
-        cfg = set_best_trial(cfg, int(datamodule.hparams.batch_size/2), model.hparams.learning_rate, study.best_trial.params)
+        cfg = set_best_trial(cfg, int(datamodule.hparams.batch_size/4), model.hparams.learning_rate, study.best_trial.params)
 
         log.info(f"Config Data: {cfg.data}")
 
