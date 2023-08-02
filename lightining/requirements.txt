@@ -29,8 +29,9 @@ pre-commit==3.3.3       # hooks for applying linters on commit
 rich==13.4.2            # beautiful text formatting in terminal
 pytest==7.3.2           # testing
 black==23.3.0           # code formatting
-twine==4.0.2             # for uploading to pypi
+twine==4.0.2            # for uploading to pypi
 sh==2.0.4               # for running bash commands in some tests (linux/macos only)
+tiktoken==0.4.0         # for openai embeddings        
 
 # # --------- data version control --------- #
 dvc==3.0.0              # data version control
