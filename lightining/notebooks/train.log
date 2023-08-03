@@ -1,0 +1,66 @@
+[2023-08-02 16:04:14,444][lightningtrain.train][INFO] - Instantiating datamodule <lightningtrain.data.hp_datamodule.HarryPotterDataModule>
+[2023-08-02 16:04:14,446][lightningtrain.train][INFO] - Instantiating model <lightningtrain.models.gpt_module.GPTLitModule>
+[2023-08-02 16:04:15,053][lightningtrain.train][INFO] - Instantiating loggers...
+[2023-08-02 16:04:15,054][lightningtrain.utils.instantiators][INFO] - Instantiating logger <lightning.pytorch.loggers.csv_logs.CSVLogger>
+[2023-08-02 16:04:15,055][lightningtrain.utils.instantiators][INFO] - Instantiating logger <aim.pytorch_lightning.AimLogger>
+[2023-08-02 16:04:15,138][lightningtrain.utils.instantiators][INFO] - Instantiating logger <lightning.pytorch.loggers.mlflow.MLFlowLogger>
+[2023-08-02 16:04:15,142][lightningtrain.utils.instantiators][INFO] - Instantiating logger <lightning.pytorch.loggers.tensorboard.TensorBoardLogger>
+[2023-08-02 16:04:15,144][lightningtrain.train][INFO] - Instantiating callbacks...
+[2023-08-02 16:04:15,144][lightningtrain.utils.instantiators][INFO] - Instantiating callback <lightning.pytorch.callbacks.ModelCheckpoint>
+[2023-08-02 16:04:15,147][lightningtrain.utils.instantiators][INFO] - Instantiating callback <lightning.pytorch.callbacks.EarlyStopping>
+[2023-08-02 16:04:15,148][lightningtrain.utils.instantiators][INFO] - Instantiating callback <lightning.pytorch.callbacks.RichModelSummary>
+[2023-08-02 16:04:15,148][lightningtrain.utils.instantiators][INFO] - Instantiating callback <lightning.pytorch.callbacks.RichProgressBar>
+[2023-08-02 16:04:15,149][lightningtrain.train][INFO] - Instantiating trainer <lightning.pytorch.trainer.Trainer>
+[2023-08-02 16:04:15,238][lightningtrain.train][INFO] - Batch size: 128
+[2023-08-02 16:04:15,238][lightningtrain.train][INFO] - Block size: 8
+[2023-08-02 16:04:15,238][lightningtrain.train][INFO] - Learning rate: 0.001
+[2023-08-02 16:04:15,238][lightningtrain.train][INFO] - Embed Size: 128
+[2023-08-02 16:04:15,238][lightningtrain.train][INFO] - Block size: 8
+[2023-08-02 16:04:15,239][lightningtrain.train][INFO] - Block size: 8
+[2023-08-02 16:04:15,239][lightningtrain.train][INFO] - Dropout: 0.0
+[2023-08-02 16:04:15,239][lightningtrain.train][INFO] - Number of Heads: 4
+[2023-08-02 16:04:15,239][lightningtrain.train][INFO] - Number of decoder blocks: 4
+[2023-08-02 16:04:29,798][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:04:29,799][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:04:29,799][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa453cdae0>
+[2023-08-02 16:08:15,884][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:08:15,886][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:08:15,886][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa0e8cb100>
+[2023-08-02 16:10:10,992][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:10:10,993][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:10:10,994][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa0f407910>
+[2023-08-02 16:11:17,459][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:11:17,460][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:11:17,461][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa42d38d00>
+[2023-08-02 16:14:16,094][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:14:16,095][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:14:16,096][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa0e8b0520>
+[2023-08-02 16:17:39,091][lightningtrain.train][INFO] - Best Trial: {'n_embed': 128, 'block_power': 4, 'n_heads_power': 3, 'drop_p': 0.2771839989271637, 'n_decoder_blocks': 4}
+[2023-08-02 16:17:39,094][lightningtrain.train][INFO] - Config Data: {'_target_': 'lightningtrain.data.hp_datamodule.HarryPotterDataModule', 'data_dir': '${paths.data_dir}/harry_potter', 'batch_size': 128, 'train_ratio': 0.7, 'block_size': 16, 'num_workers': 8, 'pin_memory': False}
+[2023-08-02 16:17:39,095][lightningtrain.train][INFO] - Config Model: {'_target_': 'lightningtrain.models.gpt_module.GPTLitModule', 'learning_rate': 0.001, 'block_size': 16, 'model': {'_target_': 'lightningtrain.models.components.gpt.GPT', 'block_size': 16, 'n_embed': 128, 'n_decoder_blocks': 4, 'drop_p': 0.2771839989271637, 'n_heads': 8}}
+[2023-08-02 16:17:39,095][lightningtrain.train][INFO] - Instantiating datamodule after optimization <lightningtrain.data.hp_datamodule.HarryPotterDataModule>
+[2023-08-02 16:17:39,106][lightningtrain.train][INFO] - Instantiating model after optimization <lightningtrain.models.gpt_module.GPTLitModule>
+[2023-08-02 16:17:41,065][lightningtrain.train][INFO] - Instantiating hyperparameter optimizer <lightning.pytorch.tuner.Tuner>
+[2023-08-02 16:17:41,067][lightningtrain.train][INFO] - Starting hyperparameter optimization for learning rate...
+[2023-08-02 16:18:17,411][lightningtrain.train][INFO] - Starting hyperparameter optimization for batch size...
+[2023-08-02 16:18:53,206][lightningtrain.train][INFO] - Batch size after optimization: 128
+[2023-08-02 16:18:53,206][lightningtrain.train][INFO] - Block size after optimization: 16
+[2023-08-02 16:18:53,207][lightningtrain.train][INFO] - Learning rate after optimization: 0.0019054607179632484
+[2023-08-02 16:18:53,207][lightningtrain.train][INFO] - Embed Size after optimization: 128
+[2023-08-02 16:18:53,207][lightningtrain.train][INFO] - Block size after optimization: 16
+[2023-08-02 16:18:53,207][lightningtrain.train][INFO] - Block size after optimization: 16
+[2023-08-02 16:18:53,207][lightningtrain.train][INFO] - Dropout after optimization: 0.2771839989271637
+[2023-08-02 16:18:53,208][lightningtrain.train][INFO] - Number of Heads after optimization: 8
+[2023-08-02 16:18:53,208][lightningtrain.train][INFO] - Number of decoder blocks after optimization: 4
+[2023-08-02 16:18:53,208][lightningtrain.train][INFO] - Logging hyperparameters!
+[2023-08-02 16:18:53,232][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:18:53,233][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:18:53,233][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa0f405ab0>
+[2023-08-02 16:18:53,314][lightningtrain.train][INFO] - Starting training!
+[2023-08-02 16:39:53,725][lightningtrain.train][INFO] - Starting testing!
+[2023-08-02 16:40:23,067][aim.sdk.reporter][INFO] - creating RunStatusReporter for af612d35fbaf46589fbddfbb
+[2023-08-02 16:40:23,068][aim.sdk.reporter][INFO] - starting from: {}
+[2023-08-02 16:40:23,069][aim.sdk.reporter][INFO] - starting writer thread for <aim.sdk.reporter.RunStatusReporter object at 0x7ffa0e89e410>
+[2023-08-02 16:40:23,646][lightningtrain.train][INFO] - Best ckpt path: /workspaces/lightningtrain/lightining/outputs/checkpoints/hp_009.ckpt
+[2023-08-02 16:40:23,648][lightningtrain.utils.utils][INFO] - Output dir: ..//outputs/
+[2023-08-02 16:40:23,650][lightningtrain.utils.utils][INFO] - Metric name is None! Skipping metric value retrieval...

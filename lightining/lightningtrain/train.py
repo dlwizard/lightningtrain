@@ -74,26 +74,42 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             datamodule_optuna = HarryPotterDataModule(
                 data_dir = cfg.data.data_dir,
                 block_size = block_size,
-                batch_size=128,
+                batch_size=64,
                 num_workers=datamodule.hparams.num_workers,
                 pin_memory=datamodule.hparams.pin_memory
             )
             callbacks.append(PyTorchLightningPruningCallback(trial, monitor="val/loss"))
-            trainer_optuna = L.Trainer(
-                logger=logger,
-                limit_train_batches=cfg.get("limit_train_batches"),
-                limit_val_batches=cfg.get("limit_val_batches"),
-                limit_test_batches=cfg.get("limit_test_batches"),
-                max_epochs=1,
-                accelerator="gpu",
-                devices=1,
-                callbacks=callbacks,
-
-            )
-
             hyperparameters = dict(n_layers=n_embed, block_size=block_size, n_heads=n_heads, drop_p=drop_p, n_decoder_blocks=n_decoder_blocks)
+            
+            try:
+                trainer_optuna = L.Trainer(
+                    logger=logger,
+                    limit_train_batches=cfg.get("limit_train_batches"),
+                    limit_val_batches=cfg.get("limit_val_batches"),
+                    limit_test_batches=cfg.get("limit_test_batches"),
+                    max_epochs=1,
+                    accelerator="gpu",
+                    devices=1,
+                    callbacks=callbacks,
+
+                )
+
+                trainer_optuna.fit(model_optuna, datamodule=datamodule_optuna)
+            except:
+                trainer_optuna = L.Trainer(
+                    logger=logger,
+                    limit_train_batches=cfg.get("limit_train_batches"),
+                    limit_val_batches=cfg.get("limit_val_batches"),
+                    limit_test_batches=cfg.get("limit_test_batches"),
+                    max_epochs=1,
+                    accelerator="cpu",
+                    devices=1,
+                    callbacks=callbacks,
+
+                )
+                trainer_optuna.fit(model_optuna, datamodule=datamodule_optuna)
+            
             trainer_optuna.logger.log_hyperparams(hyperparameters)
-            trainer_optuna.fit(model_optuna, datamodule=datamodule_optuna)
 
             return trainer_optuna.callback_metrics["val/loss"].item()
 
