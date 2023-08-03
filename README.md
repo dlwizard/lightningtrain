@@ -216,6 +216,26 @@ $ dvc push -r gdrive
 ![MLFlow UI compare](images/logs/mlflow_1.png)
 <br>
 
+## 📍 Hyperparameter search instructions
+**Prerequisites:**
+- [Optuna](https://optuna.org/)
+- [Hydra](https://hydra.cc/docs/intro/)
+
+**Steps:**
+1. Open train.yaml file in lightning/configs folder and change tune_hparam to true.
+1. Run following command to start hyperparameter search:
+```bash
+# To run hyperparameter search run:
+$ lightningtrain_train experiment=hp data.num_workers=8
+
+# the above example will run hyperparameter search for harry potter dataset experiment with GPT and will use 8 workers for data loading
+# you can change the experiment name to any experiment you want to run hyperparameter search for
+# you can change the model to any model you want to run hyperparameter search for
+
+```
+
+<br>
+
 ## 🧰 References
 - [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)
 - [Hydra](https://hydra.cc/docs/intro/)
