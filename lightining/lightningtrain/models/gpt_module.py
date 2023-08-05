@@ -1,6 +1,6 @@
-from typing import Any
-
+from typing import Any, Optional
 import torch
+import torch.nn.functional as F
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric, MinMetric
 from torchmetrics.classification.accuracy import Accuracy
@@ -33,7 +33,7 @@ class GPTLitModule(LightningModule):
 
         self.register_buffer("mask", torch.tril(torch.ones(self.hparams.block_size, self.hparams.block_size)) == 0)
 
-    def forward(self, x: torch.Tensor, targets: torch.Tensor = None):
+    def forward(self, x: torch.Tensor, targets: Optional[torch.Tensor] = None):
         mask = self.mask if targets is not None else None
         return self.model(x, targets=targets, mask=mask)
 

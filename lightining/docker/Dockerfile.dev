@@ -40,7 +40,5 @@ RUN python3.10 -m pip install -r requirements.txt --ignore-installed && rm -rf /
 # copying all files from parent directory
 COPY . .
 
-RUN python3.10 -m pip install -e .
-
 # CMD ["lightningtrain_train", "experiment=cifar10", "data.num_workers=8"]
-CMD ["lightningtrain_train", "-m", "hydra/launcher=joblib", "hydra.launcher.n_jobs=1", "experiment=cifar10", "model.patch_size=2,4,8,16", "data.num_workers=8"]
+# CMD ["lightningtrain_train", "-m", "hydra/launcher=joblib", "hydra.launcher.n_jobs=1", "experiment=cifar10", "model.patch_size=2,4,8,16", "data.num_workers=8"]

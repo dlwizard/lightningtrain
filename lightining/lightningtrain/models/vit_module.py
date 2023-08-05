@@ -1,6 +1,8 @@
 from typing import Any
 
 import torch
+import torch.nn.functional as F
+from torchvision import transforms
 from lightning import LightningModule
 
 from torchmetrics import MaxMetric, MeanMetric
@@ -39,9 +41,25 @@ class VitLitModule(LightningModule):
 
         # for tracking best so far validation accuracy
         self.val_acc_best = MaxMetric()
+        self.transform_resize = transforms.Resize((32, 32))
+        self.transform_norm = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+
 
     def forward(self, x: torch.Tensor):
         return self.model(x)
+
+    @torch.jit.export
+    def forward_jit(self, x: torch.Tensor):
+        with torch.no_grad():
+            # transform the inputs
+            x = self.transform_resize(x)
+            x = self.transform_norm(x)
+            # forward pass
+            logits = self.model(x.unsqueeze(0))
+
+            preds = F.softmax(logits, dim=-1)
+
+        return preds
 
     def model_step(self, batch: Any):
         x, y = batch

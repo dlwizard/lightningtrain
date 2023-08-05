@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - paths: default.yaml
+  - logger: many_loggers.yaml
+  - hydra: default.yaml
+
+task_name: "demo_gpt"
+
+# host and port for serving
+port: 8080
+
+# checkpoint is necessary for demo
+ckpt_path: ???
+# ../outputs/traced_models/hp-gpt-tr.pt
+# ../outputs/scripted_models/hp-gpt-sr.pt

@@ -1,10 +1,11 @@
 _target_: lightningtrain.models.gpt_module.GPTLitModule
 learning_rate: 0.001
-block_size: 8
+block_size: ${data.block_size}
 
 model:
   _target_: lightningtrain.models.components.gpt.GPT
-  block_size: 8
+  vocab_size: 100277
+  block_size: ${data.block_size}
   n_embed: 128
   n_decoder_blocks: 4
   drop_p: 0.

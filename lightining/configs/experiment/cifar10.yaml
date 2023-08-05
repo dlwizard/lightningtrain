@@ -13,23 +13,26 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-experiment_name: "cifar10-patch-size-check"
+experiment_name: "cifar10-exp"
+
+# model name, used for saving scripting and tracing models
+model_name: "cifar10-vit-"
 
 callbacks:
   model_checkpoint:
     filename: "cifar10_{epoch:03d}"
 
 tags:
-  cifar10: "patch_size_exp"
+  cifar10: "cifar10-exp"
 
 seed: 12345
 
 trainer:
   min_epochs: 0
-  max_epochs: 2
+  max_epochs: 15
 
 data:
-  num_workers: 8
+  num_workers: 4
 
 model:
   num_classes: 10

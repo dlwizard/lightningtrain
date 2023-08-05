@@ -13,7 +13,10 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-experiment_name: "harry-potter-hparam-search-check"
+experiment_name: "harry-potter-exp"
+
+# model name, used for saving scripting and tracing models
+model_name: "hp-gpt-"
 
 callbacks:
   model_checkpoint:
@@ -26,13 +29,13 @@ callbacks:
     mode: "min"
 
 tags:
-  cifar10: "hparam_search_exp"
+  cifar10: "harry-potter-exp"
 
 seed: 12345
 
 trainer:
   min_epochs: 0
-  max_epochs: 10
+  max_epochs: 15
 
 data:
   num_workers: 8

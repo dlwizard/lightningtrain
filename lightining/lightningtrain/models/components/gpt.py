@@ -1,22 +1,29 @@
+from typing import Optional
 import torch
 from torch import nn
 from torch.nn import functional as F
+from einops.layers.torch import Rearrange
 
-from einops import rearrange, einsum
-
-import tiktoken
-
-class MultiHeadAttention(nn.Module):
+class MultiHeadAttentionCustom(nn.Module):
     def __init__(self, n_heads, n_dim, dropout=0.1):
-        super(MultiHeadAttention, self).__init__()
+        super(MultiHeadAttentionCustom, self).__init__()
 
         self.n_heads = n_heads
         self.n_dim = n_dim
         self.h_dim = n_dim // n_heads
 
-        self.keys = nn.Linear(n_dim, self.h_dim * self.n_heads)
-        self.queries = nn.Linear(n_dim, self.h_dim * self.n_heads)
-        self.values = nn.Linear(n_dim, self.h_dim * self.n_heads)
+        self.keys = nn.Sequential(
+            nn.Linear(n_dim, self.h_dim * self.n_heads),
+            Rearrange('b time (nh dim) -> nh b time dim', nh=self.n_heads)
+        )
+        self.queries = nn.Sequential(
+            nn.Linear(n_dim, self.h_dim * self.n_heads),
+            Rearrange('b time (nh dim) -> nh b time dim', nh=self.n_heads)
+        )
+        self.values = nn.Sequential(
+            nn.Linear(n_dim, self.h_dim * self.n_heads),
+            Rearrange('b time (nh dim) -> nh b time dim', nh=self.n_heads)
+        )
 
         self.proj = nn.Linear(n_dim, n_dim)
 
@@ -24,43 +31,37 @@ class MultiHeadAttention(nn.Module):
 
         self.attn_dropout = nn.Dropout(p=dropout)
 
-    def forward(self, x, mask = None):
-        key = rearrange(
-            self.keys(x),
-            'b time (nh dim) -> nh b time dim', nh=self.n_heads
-        )
-        query = rearrange(
-            self.queries(x),
-            'b time (nh dim) -> nh b time dim', nh=self.n_heads
-        )
-        value = rearrange(
-            self.values(x),
-            'b time (nh dim) -> nh b time dim', nh=self.n_heads
+        self.rearrange_out = Rearrange(
+            'nh b vt dim -> b vt (nh dim)'
         )
 
-        energies = einsum(
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None):
+        key = self.keys(x)
+        query = self.queries(x)
+        value = self.values(x)
+
+        energies = torch.einsum(
+            'nbqd,nbkd->nbqk',
             query,
             key,
-            'nh b qt dim, nh b kt dim -> nh b qt kt'
+
         )
 
         if mask is not None:
-            fill_value = torch.finfo(energies.dtype).min
+            fill_value = 1e-20
             energies = energies.masked_fill(mask, fill_value)
+
         attn = F.softmax(energies, dim=-1)
 
         attn = self.attn_dropout(attn)
 
-        out = einsum(
+        out = torch.einsum(
+            'nbqk,nbkd->nbqd',
             attn,
             value,
-            'nh b qt kt, nh b kt dim -> nh b qt dim'
         )
 
-        out = rearrange(
-            out,
-            'nh b vt dim -> b vt (nh dim)'
-        )
+        out = self.rearrange_out(out)
 
         out = self.proj(out)
 
@@ -72,10 +73,10 @@ class ResidualAdd(nn.Module):
 
         self.fn = fn
 
-    def forward(self, x, **kwargs):
+    def forward(self, x):
         res = x
 
-        out = self.fn(x, **kwargs)
+        out = self.fn(x)
 
         out += res
 
@@ -88,21 +89,21 @@ class FeedForwardBlock(nn.Sequential):
             nn.GELU(),
             nn.Dropout(drop_p),
             nn.Linear(expansion * emb_size, emb_size)
-        )
+        )  
 
 class GPTDecoderBlock(nn.Module):
     def __init__(
         self,
         emb_size = 768,
-        drop_p = 0.,
+        drop_p = 0.0,
         forward_expansion = 4,
-        forward_drop_p = 0,
+        forward_drop_p = 0.0,
         n_heads=4
     ):
         super(GPTDecoderBlock, self).__init__()
 
         self.ln = nn.LayerNorm(emb_size)
-        self.mha = MultiHeadAttention(n_heads=n_heads, n_dim=emb_size, dropout=drop_p)
+        self.mha = MultiHeadAttentionCustom(n_heads=n_heads, n_dim=emb_size, dropout=drop_p)
         self.drop = nn.Dropout(drop_p)
 
         self.out_block = ResidualAdd(
@@ -113,7 +114,7 @@ class GPTDecoderBlock(nn.Module):
             )
         )
 
-    def forward(self, x, mask = None):
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None):
         residual = x
 
         out = self.ln(x)
@@ -122,31 +123,23 @@ class GPTDecoderBlock(nn.Module):
         out = x + out
         out = self.out_block(out)
 
-        return out
+        return out     
 
 class GPT(nn.Module):
-    def __init__(self, block_size, n_embed, n_decoder_blocks = 4, drop_p = 0., n_heads=4):
+    def __init__(self,
+                 vocab_size,
+                 block_size, 
+                 n_embed,
+                 n_decoder_blocks=4,
+                 n_heads=4,
+                 drop_p=0.,):
         super(GPT, self).__init__()
-        cl100k_base = tiktoken.get_encoding("cl100k_base")
-        self.encoder = tiktoken.Encoding(
-            # If you're changing the set of special tokens, make sure to use a different name
-            # It should be clear from the name what behaviour to expect.
-            name="cl100k_im",
-            pat_str=cl100k_base._pat_str,
-            mergeable_ranks=cl100k_base._mergeable_ranks,
-            special_tokens={
-                **cl100k_base._special_tokens,
-                "<|im_start|>": 100264,
-                "<|im_end|>": 100265,
-            }
-        )
-        vocab_size = self.encoder.n_vocab
         self.block_size = block_size
         self.n_embed = n_embed
         self.n_decoder_blocks = n_decoder_blocks
         self.drop_p = drop_p
         self.n_heads = n_heads
-        
+
         self.token_embedding_table = nn.Embedding(vocab_size, self.n_embed)
         self.position_embedding_table = nn.Embedding(self.block_size, self.n_embed)
         self.blocks = nn.ModuleList([
@@ -156,9 +149,12 @@ class GPT(nn.Module):
         self.ffwd = FeedForwardBlock(emb_size = self.n_embed, drop_p = drop_p)
         self.lm_head = nn.Linear(self.n_embed, vocab_size)
 
+        # query: what am i looking for?
+        # key: what do i contain?
 
-    def forward(self, idx, targets=None, mask=None):
+    def forward(self, idx: torch.Tensor, targets: Optional[torch.Tensor]=None, mask: Optional[torch.Tensor]=None):
         B, T = idx.shape
+
         tok_emb = self.token_embedding_table(idx)
         pos_emb = self.position_embedding_table(torch.arange(T, device=idx.device))
         x = tok_emb + pos_emb
@@ -169,7 +165,7 @@ class GPT(nn.Module):
         logits = self.lm_head(x)
 
         if targets is None:
-            loss = None
+            loss = torch.tensor(0)
         else:
             B, T, C = logits.shape
             logits = logits.view(B*T, C)
@@ -178,13 +174,13 @@ class GPT(nn.Module):
 
         return logits, loss
 
-    @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature = 1.0, top_k = None):
+    @torch.jit.export
+    def generate(self, idx: torch.Tensor, max_new_tokens: int, temperature: float = 1.0, top_k: Optional[int] = None):
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
             # forward the model to get the logits for the index in the sequence
-            logits, _ = self(idx_cond)
+            logits, _ = self(idx_cond, targets=None, mask=None)
             # pluck the logits at the final step and scale by desired temperature
             logits = logits[:, -1, :] / temperature
             # optionally crop the logits to only the top k options
@@ -198,4 +194,4 @@ class GPT(nn.Module):
             # append sampled index to the running sequence and continue
             idx = torch.cat((idx, idx_next), dim=1)
 
-        return idx
+        return idx  

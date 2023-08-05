@@ -32,6 +32,7 @@ black==23.3.0           # code formatting
 twine==4.0.2            # for uploading to pypi
 sh==2.0.4               # for running bash commands in some tests (linux/macos only)
 tiktoken==0.4.0         # for openai embeddings        
+gradio==3.39.0          # for creating demo web apps
 
 # # --------- data version control --------- #
 dvc==3.0.0              # data version control

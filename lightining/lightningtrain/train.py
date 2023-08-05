@@ -40,15 +40,15 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
     trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger, limit_train_batches=cfg.get("limit_train_batches"), limit_val_batches=cfg.get("limit_val_batches"), limit_test_batches=cfg.get("limit_test_batches"))
 
-    log.info(f"Batch size: {datamodule.hparams.batch_size}")
-    log.info(f"Block size: {datamodule.hparams.block_size}")
-    log.info(f"Learning rate: {model.hparams.learning_rate}")
-    log.info(f"Embed Size: {model.model.n_embed}")
-    log.info(f"Block size: {model.hparams.block_size}")
-    log.info(f"Block size: {model.model.block_size}")
-    log.info(f"Dropout: {model.model.drop_p}")
-    log.info(f"Number of Heads: {model.model.n_heads}")
-    log.info(f"Number of decoder blocks: {model.model.n_decoder_blocks}")
+    # log.info(f"Batch size: {datamodule.hparams.batch_size}")
+    # log.info(f"Block size: {datamodule.hparams.block_size}")
+    # log.info(f"Learning rate: {model.hparams.learning_rate}")
+    # log.info(f"Embed Size: {model.model.n_embed}")
+    # log.info(f"Block size: {model.hparams.block_size}")
+    # log.info(f"Block size: {model.model.block_size}")
+    # log.info(f"Dropout: {model.model.drop_p}")
+    # log.info(f"Number of Heads: {model.model.n_heads}")
+    # log.info(f"Number of decoder blocks: {model.model.n_decoder_blocks}")
 
     if cfg.get("tune_hparam"):
         def objective(trial: optuna.trial.Trial) -> float:
@@ -172,6 +172,40 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.get("ckpt_path"))
 
     train_metrics = trainer.callback_metrics
+
+    if cfg.get("trace"):
+        try:
+            Path(f"{cfg.paths.output_dir}/traced_models/").mkdir(exist_ok=True)
+
+            log.info("Tracing Model ...")
+            log.info(f"Example Input Shape: {datamodule.train_dataloader().dataset[0][0].unsqueeze(0).shape}")
+
+            traced_model = model.to_torchscript(method="trace", example_inputs=datamodule.train_dataloader().dataset[0][0].unsqueeze(0))
+            torch.jit.save(traced_model, f"{cfg.paths.output_dir}/traced_models/{cfg.model_name}tr.pt")
+
+            log.info(f"Saving traced model to {cfg.paths.output_dir}/traced_models/{cfg.model_name}tr.pt")
+        except Exception as e:
+            log.warning("Tracing failed! Continuing without saving traced model...")
+            log.error(f"Tracing failed due to error: {e}")
+            pass
+    
+    if cfg.get("script"):
+        try: 
+            log.info("Scripting Model ...")
+
+            Path(f"{cfg.paths.output_dir}/scripted_models/").mkdir(exist_ok=True)
+
+            scripted_model = model.to_torchscript(method="script")
+            
+            log.info(f"Saving traced model to {cfg.paths.output_dir}/scripted_models/{cfg.model_name}sr.pt")
+            
+            torch.jit.save(scripted_model, f"{cfg.paths.output_dir}/scripted_models/{cfg.model_name}sr.pt")
+
+        except Exception as e:
+            log.warning("Scripting failed! Continuing without saving scripted model...")
+            log.error(f"Scripting failed due to error: {e}")
+            pass
+
 
     if cfg.get("test"):
         log.info("Starting testing!")

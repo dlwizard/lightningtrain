@@ -1,0 +1,24 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - paths: default.yaml
+  - logger: many_loggers.yaml
+  - hydra: default.yaml
+
+  # experiment configs allow for version control of specific hyperparameters
+  # e.g. best hyperparameters for given model and datamodule
+  - experiment: null
+
+task_name: "demo_vit"
+
+# classes for cifar10
+classes: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+# host and port for serving
+port: 8080
+
+# checkpoint is necessary for demo
+ckpt_path: ???
+# ../outputs/traced_models/cifar10-vit-tr.pt
+# ../outputs/scripted_models/cifar10-vit-sr.pt

@@ -1,7 +1,7 @@
+from typing import Any, Optional
 import torch
 from torch import nn
 from einops.layers.torch import Rearrange, Reduce
-from einops import rearrange, reduce, repeat
 from torch.nn import functional as F
 
 class PatchEmbedding(nn.Module):
@@ -30,16 +30,16 @@ class PatchEmbedding(nn.Module):
         self.positional_emb = nn.Parameter(
             torch.randn(
                 (img_size // patch_size) * (img_size // patch_size)
-                + 1,  # 14 x 14 patches + CLS patch
+                + 1,  
                 emb_size,
             )
         )
 
-    def forward(self, x):
-        B, *_ = x.shape
+    def forward(self, x: torch.Tensor):
+        B, c, h, w = x.shape
         x = self.projection(x)
-        # print(x.shape, )
-        cls_token = repeat(self.cls_token, "() p e -> b p e", b=B)
+        b=B
+        cls_token = self.cls_token.repeat(b,1,1)
 
         # print(cls_token.shape)
 
@@ -48,7 +48,7 @@ class PatchEmbedding(nn.Module):
         x += self.positional_emb
 
         return x
-
+    
 class MultiHeadAttention(nn.Module):
     def __init__(self, emb_size=768, num_heads=8, dropout=0):
         super(MultiHeadAttention, self).__init__()
@@ -66,15 +66,17 @@ class MultiHeadAttention(nn.Module):
 
         self.scaling = (self.emb_size // num_heads) ** -0.5
 
-    def forward(self, x, mask=None):
-        rearrange_heads = (
-            "batch seq_len (num_head h_dim) -> batch num_head seq_len h_dim"
+        self.rearrange_heads = Rearrange(
+            "batch seq_len (num_head h_dim) -> batch num_head seq_len h_dim", num_head=self.num_heads
         )
+        self.rearrange_out = Rearrange("batch num_head seq_length dim -> batch seq_length (num_head dim)")
 
-        queries = rearrange(self.query(x), rearrange_heads, num_head=self.num_heads)
-        keys = rearrange(self.key(x), rearrange_heads, num_head=self.num_heads)
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None):
+    
+        queries = self.rearrange_heads(self.query(x))
+        keys = self.rearrange_heads(self.key(x))
+        values = self.rearrange_heads(self.value(x))
 
-        values = rearrange(self.key(x), rearrange_heads, num_head=self.num_heads)
 
         energies = torch.einsum("bhqd, bhkd -> bhqk", queries, keys)
 
@@ -88,24 +90,21 @@ class MultiHeadAttention(nn.Module):
 
         out = torch.einsum("bhas, bhsd -> bhad", attention, values)
 
-        out = rearrange(
-            out, "batch num_head seq_length dim -> batch seq_length (num_head dim)"
-        )
-
+        out = self.rearrange_out(out)
         out = self.projection(out)
 
         return out
-
+    
 class ResidualAdd(nn.Module):
     def __init__(self, fn):
         super(ResidualAdd, self).__init__()
 
         self.fn = fn
 
-    def forward(self, x, **kwargs):
+    def forward(self, x):
         res = x
 
-        out = self.fn(x, **kwargs)
+        out = self.fn(x)
 
         out += res
 
@@ -120,13 +119,13 @@ FeedForwardBlock = lambda emb_size=768, expansion=4, drop_p=0.0: nn.Sequential(
 
 class TransformerEncoderBlock(nn.Sequential):
     def __init__(
-        self, emb_size=768, drop_p=0.0, forward_expansion=4, forward_drop_p=0, **kwargs
+        self, emb_size=768, drop_p=0.0, forward_expansion=4, forward_drop_p=0
     ):
         super(TransformerEncoderBlock, self).__init__(
             ResidualAdd(
                 nn.Sequential(
                     nn.LayerNorm(emb_size),
-                    MultiHeadAttention(emb_size, **kwargs),
+                    MultiHeadAttention(emb_size),
                     nn.Dropout(drop_p),
                 )
             ),
@@ -142,10 +141,8 @@ class TransformerEncoderBlock(nn.Sequential):
         )
 
 class TransformerEncoder(nn.Sequential):
-    def __init__(self, depth=12, **kwargs):
-        super(TransformerEncoder, self).__init__(
-            *(TransformerEncoderBlock(**kwargs) for _ in range(depth))
-        )
+    def __init__(self, depth=12, emb_size=768):
+        super(TransformerEncoder, self).__init__()
 
 class ClassificationHead(nn.Sequential):
     def __init__(self, emb_size=768, num_classes=1000):
@@ -165,8 +162,7 @@ class ViT(nn.Sequential):
         emb_size=768,
         img_size=224,
         depth=12,
-        num_classes=1000,
-        **kwargs
+        num_classes=1000
     ):
         super(ViT, self).__init__(
             PatchEmbedding(
@@ -175,6 +171,10 @@ class ViT(nn.Sequential):
                 emb_size,
                 img_size,
             ),
-            TransformerEncoder(depth, emb_size=emb_size, **kwargs),
+            TransformerEncoder(depth, emb_size=emb_size),
             ClassificationHead(emb_size, num_classes),
         )
+
+class ToTensorModule(nn.Module):
+    def forward(self, x):
+        return torch.tensor(x)

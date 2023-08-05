@@ -23,3 +23,14 @@ services:
     restart: on-failure
     depends_on:
       - lightining
+  
+  demo:
+    build:
+      context: demo
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./outputs:/workspace/outputs
+    network_mode: 'host'
+    # restart: on-failure
+    # depends_on:
+    #   - lightining

@@ -1,6 +1,8 @@
 from typing import Any
 
 import torch
+import torch.nn.functional as F
+from torchvision import transforms
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
@@ -52,8 +54,23 @@ class MNISTLitModule(LightningModule):
         # for tracking best so far validation accuracy
         self.val_acc_best = MaxMetric()
 
+        self.transform = transforms.Normalize((0.1307,), (0.3081,))
+
     def forward(self, x: torch.Tensor):
         return self.net(x)
+
+    @torch.jit.export
+    def forward_jit(self, x: torch.Tensor):
+        with torch.no_grad():
+            # transform the inputs
+            x = self.transform(x)
+
+            # forward pass
+            logits = self(x)
+
+            preds = F.softmax(logits, dim=-1)
+
+        return preds
 
     def on_train_start(self):
         # by default lightning executes validation step sanity checks before training starts,

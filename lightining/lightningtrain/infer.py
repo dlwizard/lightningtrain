@@ -25,27 +25,27 @@ def infer(cfg: DictConfig) -> Tuple[dict, dict]:
     if cfg.get("seed"):
         L.seed_everything(cfg.seed, workers=True)
 
-    log.info(f"Instantiating model <{cfg.model._target_}>")
-    model: LightningModule = hydra.utils.instantiate(cfg.model)
-    # model = model.load_from_checkpoint(checkpoint_path=checkpoint_file_path)
+    assert cfg.ckpt_path
+
+    log.info(f"Instantiating scripted model <{cfg.ckpt_path}>")
+    model = torch.jit.load(cfg.ckpt_path)
 
     image_path = cfg.get("image_path")
-
     if "http" in image_path:
         response = requests.get(image_path).content
         img = Image.open(BytesIO(response)).convert("RGB")
     else:
         img = Image.open(image_path).convert("RGB")
     
-    transform = T.Compose([
-                T.Resize((cfg.model.get("img_size"), cfg.model.get("img_size"))),
-                T.ToTensor(),
-                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    transform = T.ToTensor()
+    img = transform(img)
     
-    img = transform(img).unsqueeze(0)
-    out = model.forward(img)
-    out = softmax(out, dim=1)
+    # img = transform(img).unsqueeze(0)
+    preds = model.forward_jit(img)
+    # preds = preds[0].tolist()
+    # preds =  {str(i): preds[i] for i in range(10)}
+
+    print(preds)
 
     table = Table(title=cfg.get("task_name") + " image: " + image_path.split("/")[-1])
 
@@ -53,7 +53,7 @@ def infer(cfg: DictConfig) -> Tuple[dict, dict]:
     table.add_column("Prob", justify="left", style="magenta")
 
     for i in range(len(cfg.get("classes"))):
-        table.add_row(cfg.get("classes")[i], str(out[0][i].item()))
+        table.add_row(cfg.get("classes")[i], str(preds[0][i].item()))
     
     print("📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌📌\n")
     console = Console()

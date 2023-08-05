@@ -1,0 +1,15 @@
+# @package _global_
+
+defaults:
+  - _self_
+
+task_name: "demo_vit"
+
+# host and port for serving
+port: 8080
+
+# classes for cifar10
+classes: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+# checkpoint is necessary for demo
+ckpt_path: outputs/traced_models/cifar10-vit-tr.pt
