@@ -93,7 +93,7 @@ lightningtrain
 ## 🚀  Quickstart
 ```bash
 # clone project
-$ git clone https://github.com/sh-aidev/lightningtrain.git -b demo
+$ git clone https://github.com/sh-aidev/lightningtrain.git -b fastai
 
 # change directory to lightning
 $ cd lightningtrain/lightning
@@ -149,9 +149,25 @@ $ docker-compose run demo
 # To run demo docker saparately:
 $ cd demo
 $ docker build . -t lightningtrain_demo:latest -f docker/Dockerfile.dev
-$ docker run -it --rm lightningtrain_demo:latest -v ./outputs:/workspace/outputs
+$ docker run -it --rm lightningtrain_demo:latest -v ../outputs:/workspace/outputs
+
+# To run Fastapi server:
+$ docker-compose run fastapi
+
+# To run Fastapi server docker saparately:
+$ cd fastapi
+$ docker build . -t lightningtrain_fastapi:latest -f docker/Dockerfile.dev -v ../outputs:/workspace/outputs
+
+# to run fastapi server test:
+$ pytest
 
 ```
+
+test output:
+![fastapi test output](images/fastapi/1.png)
+<br>
+## 🗡 Demo usage instructions
+
 <br>
 
 ## 🗡 Demo usage instructions
