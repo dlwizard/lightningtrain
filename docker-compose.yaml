@@ -34,3 +34,14 @@ services:
     # restart: on-failure
     # depends_on:
     #   - lightining
+
+  fastapi:
+    build:
+      context: fastapi
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./outputs:/workspace/outputs
+    network_mode: 'host'
+    # restart: on-failure
+    # depends_on:
+    #   - lightining
