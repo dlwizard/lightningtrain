@@ -1,6 +1,6 @@
 _target_: lightningtrain.data.cifar10_datamodule.CIFAR10DataModule
 data_dir: ${paths.data_dir}
-batch_size: 128
+batch_size: 1024
 train_val_test_split: [45_000, 5_000, 10_000]
 num_workers: 0
 pin_memory: False
