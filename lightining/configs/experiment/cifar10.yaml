@@ -6,7 +6,7 @@
 defaults:
   - override /data: cifar10.yaml
   - override /model: vit.yaml
-  - override /trainer: default.yaml
+  - override /trainer: ddp.yaml
   - override /logger: many_loggers.yaml
   - override /callbacks: default.yaml
 
