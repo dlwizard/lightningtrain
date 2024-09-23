@@ -25,6 +25,11 @@ This repository contains a simple PyTorch Lightning + Hydra project template. It
 
 <br>
 
+## 🔧 Implemented Features
+- [x] Distributed training with multiple GPU in single node
+- [x] Distributed training with multiple GPU in multiple nodes
+- [x] Distributed training with Fully Sharded Data Parallel(FSDP)
+
 ## 📁  Project Structure
 
 The directory structure of new project looks like this:
@@ -189,8 +194,40 @@ $ dvc remote list
 $ dvc push -r gdrive
 
 ```
+<br>
+
+## 🗡 Distributed training Quickstart
+**Training with DistributedDataParallel (DDP) strategy:**
+```r
+# install project as a package
+$ pip install -e .
+
+# run below if we have multiple gpu in single node
+python3 lightningtrain/train.py trainer=ddp trainer.devices=4 trainer.num_nodes=1
+
+# If we have multiple node first run below in master node to obtain master node ip address
+hostname
+
+# After that run this in the master node with one gpu in one node:
+MASTER_PORT=29500 MASTER_ADDR=172.31.10.234 WORLD_SIZE=2 NODE_RANK=0 python src/train.py trainer=ddp trainer.devices=1 trainer.num_nodes=2
+
+# Once started then clone same repo in other node, install requirements.txt and package
+python3 -m pip install -r requirements.txt
+python3 -m pip install -e .
+
+# Once installation is done run:
+MASTER_PORT=29500 MASTER_ADDR=172.31.10.234 WORLD_SIZE=2 NODE_RANK=1 python src/train.py trainer=ddp trainer.devices=1 trainer.num_nodes=2
 
 
+```
+**Training with Fully Sharded Data Parallel(FSDP) strategy:**
+```r
+# install project as a package
+$ pip install -e .
+
+# run below if we have multiple gpu in single node
+python3 lightningtrain/train.py trainer=fsdp trainer.devices=4 trainer.num_nodes=1
+```
 <br>
 
 ## 🗡  Logger UI usage instructions
